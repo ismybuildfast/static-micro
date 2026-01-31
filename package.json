@@ -1,6 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "build": "./build.sh"
+    "build": "./build.sh",
+    "start": "npx serve public -l ${PORT:-3000}"
+  },
+  "dependencies": {
+    "serve": "^14.2.0"
   }
 }
