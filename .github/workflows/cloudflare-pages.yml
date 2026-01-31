@@ -15,6 +15,14 @@ jobs:
       - name: Build
         run: ./build.sh
         
+      - name: Create Cloudflare Pages project if not exists
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 7870a037a499565b8ca1cb739afb8bca
+          command: pages project create static-micro --production-branch main
+        continue-on-error: true
+        
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
