@@ -9,17 +9,13 @@ RUN chmod +x build.sh && ./build.sh
 FROM nginx:alpine
 COPY --from=builder /app/public/ /usr/share/nginx/html/
 
-# Railway uses PORT env var, nginx needs to listen on it
-# Create a template that uses the PORT variable
-RUN printf 'server {\n\
-    listen ${PORT:-80};\n\
-    server_name _;\n\
-    root /usr/share/nginx/html;\n\
-    index index.html;\n\
-    location / {\n\
-        try_files $uri $uri/ =404;\n\
-    }\n\
-}\n' > /etc/nginx/templates/default.conf.template
+# Remove default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Create a startup script that generates nginx config with PORT
+RUN printf '#!/bin/sh\n\
+echo "server { listen ${PORT:-80}; server_name _; root /usr/share/nginx/html; index index.html; location / { try_files \\$uri \\$uri/ =404; } }" > /etc/nginx/conf.d/default.conf\n\
+exec nginx -g "daemon off;"\n' > /start.sh && chmod +x /start.sh
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/start.sh"]
