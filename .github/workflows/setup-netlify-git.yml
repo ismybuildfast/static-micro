@@ -1,0 +1,46 @@
+name: Setup Netlify Git Integration
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Connect to GitHub via Netlify API
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 25b0cda0-657d-4cd0-9aa9-f16813a10089
+        run: |
+          set -e
+          
+          echo "Step 1: Check current site config..."
+          SITE_INFO=$(curl -s "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN")
+          echo "$SITE_INFO" | jq '{name: .name, repo: .build_settings.repo_url, cmd: .build_settings.cmd}'
+          
+          echo ""
+          echo "Step 2: Link site to GitHub repo..."
+          UPDATE_RESULT=$(curl -s -X PATCH "https://api.netlify.com/api/v1/sites/$NETLIFY_SITE_ID" \
+            -H "Authorization: Bearer $NETLIFY_AUTH_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "repo": {
+                "provider": "github",
+                "repo": "ismybuildfast/static-micro",
+                "branch": "main",
+                "cmd": "./build.sh",
+                "dir": "public"
+              }
+            }')
+          echo "$UPDATE_RESULT" | jq '{name: .name, repo: .build_settings.repo_url, cmd: .build_settings.cmd, dir: .build_settings.dir}'
+          
+          REPO_URL=$(echo "$UPDATE_RESULT" | jq -r '.build_settings.repo_url // empty')
+          if [ -n "$REPO_URL" ]; then
+            echo ""
+            echo "Successfully linked site to GitHub: $REPO_URL"
+          else
+            echo ""
+            echo "Response:"
+            echo "$UPDATE_RESULT" | jq '.'
+          fi
