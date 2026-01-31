@@ -1,3 +1,8 @@
 node_modules
 public/bench.txt
 public/bench-incremental.txt
+.vercel
+.env*.local
+
+# Local Netlify folder
+.netlify
