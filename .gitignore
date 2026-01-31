@@ -1,0 +1,3 @@
+node_modules
+public/bench.txt
+public/bench-incremental.txt
