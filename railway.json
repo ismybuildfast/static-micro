@@ -5,7 +5,7 @@
     "buildCommand": "./build.sh"
   },
   "deploy": {
-    "startCommand": "npx serve public -l 3000",
+    "startCommand": "npx serve public -l $PORT",
     "healthcheckPath": "/",
     "restartPolicyType": "ON_FAILURE"
   }
