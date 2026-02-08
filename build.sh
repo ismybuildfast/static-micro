@@ -3,6 +3,18 @@ set -eu
 
 . ./build
 
+# Fetch mode from blob store (decoupled from git to avoid race conditions
+# when multiple phases push to the same repo)
+blob_config=$(curl -sf "https://9abkxtxeez4kcctv.public.blob.vercel-storage.com/runs/$build_id.json" 2>/dev/null || echo "")
+if [ -n "$blob_config" ]; then
+  blob_mode=$(echo "$blob_config" | grep -o '"mode"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+  if [ -n "$blob_mode" ]; then
+    echo "fetched mode=$blob_mode from blob store (overriding mode=${mode:-unset})"
+    mode="$blob_mode"
+  fi
+fi
+
+
 mode="${mode:-full}"
 bench=public/bench.txt
 bench_incr=public/bench-incremental.txt
